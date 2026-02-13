@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Future Bass Core - Responsive</title>
+    <title>Future Bass Sequencer 64</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap');
@@ -123,6 +123,25 @@
             color: white;
         }
 
+        /* Bar Selector Buttons */
+        .bar-btn {
+            border-color: var(--kawaii-dark);
+            color: var(--kawaii-dark);
+            box-shadow: 0 4px 0 #ddd;
+            min-width: 36px;
+            padding: 6px 10px;
+        }
+        .bar-btn:active {
+            box-shadow: 0 0 0 #ddd;
+            transform: translateY(4px);
+        }
+        .bar-btn.current {
+            background: var(--kawaii-purple);
+            border-color: var(--kawaii-purple);
+            color: #fff;
+            box-shadow: 0 4px 0 #b388da;
+        }
+
         select {
             background: #fff;
             color: var(--kawaii-dark);
@@ -185,13 +204,11 @@
             transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-sizing: border-box;
         }
+        .step.hidden-step { display: none; }
 
         /* Beat Grouping - Using borders */
-        .step:nth-child(4n + 5) {
-            border-right: 6px solid var(--grid-bg);
-        }
-        .step:last-child {
-            border-right: 2px solid #eee;
+        .step:not(.hidden-step):nth-of-type(4n + 2) {
+            border-left: 4px solid var(--kawaii-blue); 
         }
 
         .step:hover {
@@ -228,11 +245,8 @@
             margin-bottom: 4px;
             box-sizing: border-box;
         }
+        .indicator.hidden-step { display: none; }
         
-        .indicator:nth-child(4n + 5) {
-            border-right: 6px solid var(--grid-bg);
-        }
-
         .indicator.active {
             background: var(--kawaii-dark);
         }
@@ -265,39 +279,63 @@
 </head>
 <body>
 
-    <h1>FUTURE BASS</h1>
+    <h1>FUTURE BASS SEQUENCER 64</h1>
 
     <div class="sequencer-container">
         <!-- Controls -->
-        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-            <div class="flex gap-2 flex-wrap">
-                <button id="playBtn" class="btn">▶ PLAY</button>
-                <button id="stopBtn" class="btn">■ STOP</button>
-                <button id="clearBtn" class="btn btn-danger">CLEAR</button>
+        <div class="flex flex-col gap-6 mb-6">
+            <!-- Top Row -->
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex gap-2 flex-wrap justify-center sm:justify-start">
+                    <button id="playBtn" class="btn">▶ PLAY</button>
+                    <button id="stopBtn" class="btn">■ STOP</button>
+                    <button id="clearBtn" class="btn btn-danger">CLEAR</button>
+                </div>
+                
+                <div class="flex flex-wrap gap-4 items-center flex-grow justify-center sm:justify-end">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-purple-400 font-bold font-fredoka">BPM</span>
+                        <input type="range" id="bpmSlider" min="140" max="180" value="160" class="w-24 sm:w-32">
+                        <span id="bpmVal" class="bpm-display w-8 text-right">160</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-purple-400 font-bold font-fredoka">VOL</span>
+                        <input type="range" id="volSlider" min="0" max="100" value="80" class="w-20 sm:w-24">
+                        <span id="volVal" class="text-gray-500 text-xs w-8 text-right font-fredoka">80%</span>
+                    </div>
+                </div>
+
                 <button id="exportBtn" class="btn btn-purple">MIDI ↓</button>
             </div>
-            
-            <div class="flex flex-wrap gap-4 items-center flex-grow justify-end">
+
+            <!-- Second Row: Bar Selection & Preset -->
+            <div class="flex flex-wrap items-center justify-between gap-4 bg-white/50 p-3 rounded-2xl border-2 border-white">
                 <div class="flex items-center gap-2">
-                    <span class="text-xs text-purple-400 font-bold font-fredoka">BPM</span>
-                    <input type="range" id="bpmSlider" min="140" max="170" value="150" class="w-24 sm:w-32">
-                    <span id="bpmVal" class="bpm-display w-8 text-right">150</span>
+                    <span class="text-xs text-gray-500 font-bold font-fredoka mr-1">BAR:</span>
+                    <button class="btn bar-btn current" data-bar="0">1</button>
+                    <button class="btn bar-btn" data-bar="1">2</button>
+                    <button class="btn bar-btn" data-bar="2">3</button>
+                    <button class="btn bar-btn" data-bar="3">4</button>
+                    
+                    <div class="h-6 w-px bg-gray-300 mx-2"></div>
+                    
+                    <label class="flex items-center cursor-pointer gap-2">
+                        <input type="checkbox" id="autoFollowCheck" checked class="accent-[#d6aaff]">
+                        <span class="text-xs text-gray-500 select-none font-fredoka">AUTO</span>
+                    </label>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs text-purple-400 font-bold font-fredoka">VOL</span>
-                    <input type="range" id="volSlider" min="0" max="100" value="80" class="w-20 sm:w-24">
-                    <span id="volVal" class="text-gray-500 text-xs w-8 text-right font-fredoka">80%</span>
+
+                <div class="w-full sm:w-auto">
+                    <select id="presetSelect" class="w-full sm:w-64 text-sm">
+                        <option value="" disabled selected>SELECT VIBE...</option>
+                    </select>
                 </div>
             </div>
-
-            <select id="presetSelect" class="w-full sm:w-auto text-sm">
-                <option value="" disabled selected>SELECT VIBE...</option>
-            </select>
         </div>
 
         <div class="text-center mb-4">
             <div id="patternName" class="text-pink-400 font-bold text-sm uppercase font-[Fredoka One]">USER PATTERN</div>
-            <div id="descDisplay" class="text-gray-500 text-xs mt-1 h-4 font-[Quicksand]">System Ready.</div>
+            <div id="descDisplay" class="text-gray-500 text-xs mt-1 h-4 font-[Quicksand]">Let's make it Kawaii!</div>
         </div>
 
         <!-- Sequencer Grid (Scrollable) -->
@@ -338,7 +376,7 @@
         </div>
         
         <div class="text-center">
-             <div class="description">Kawaii & Future Sounds</div>
+             <div class="description">Kawaii & Future Sounds (64 Steps)</div>
         </div>
     </div>
 
@@ -505,15 +543,17 @@
             });
         }
 
-        // --- Sequencer Logic ---
-        const STEPS = 16;
+        // --- Sequencer Logic (64 Steps) ---
+        const STEPS = 64;
         let isPlaying = false;
         let currentStep = 0;
         let nextNoteTime = 0.0;
-        let bpm = 150; 
+        let bpm = 160; 
         let timerID;
-        let lookahead = 25.0; 
-        let scheduleAheadTime = 0.1;
+        let currentBarView = 0;
+        let autoFollow = true;
+        const lookahead = 25.0; 
+        const scheduleAheadTime = 0.1;
 
         // State: 0=Chord, 1=Hat, 2=Snare, 3=Kick
         let gridState = [
@@ -572,43 +612,62 @@
 
             const blob = new Blob([bytes], { type: 'audio/midi' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'future_bass_pattern.mid'; a.click();
+            const a = document.createElement('a'); a.href = url; a.download = `future_bass_pattern_64_${Date.now()}.mid`; a.click();
+            URL.revokeObjectURL(url);
         }
 
-        // --- 20 Future Bass Presets ---
+        // --- 30 Future Bass Presets (4-Bar Expanded) ---
+        // Half-time logic at 160BPM: Kick on 1, Snare on 3
         const presets = [
-            { name: "1. Kawaii Future", desc: "Happy chords on the beat.", k: [0, 3, 10], s: [8], h: [0,2,4,6,8,10,12,14], c: [0, 4, 11, 14] },
-            { name: "2. The Wub Drop", desc: "Syncopated chord stabs.", k: [0, 5, 11], s: [8], h: [0, 4, 8, 12], c: [0, 3, 6, 11, 14] },
-            { name: "3. Anime Opening", desc: "Driving energetic beat.", k: [0, 2, 4, 10, 12], s: [8], h: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], c: [0, 8] },
-            { name: "4. Future Pop", desc: "Minimal and catchy.", k: [0, 11], s: [8], h: [0, 2, 4, 8, 10, 12], c: [0, 4, 12] },
-            { name: "5. Emotional Saw", desc: "Sustained feeling chords.", k: [0, 4, 10], s: [8], h: [], c: [0, 4, 8, 12] },
-            { name: "6. Trap Influence", desc: "Heavy kick, fast hats.", k: [0, 3, 6], s: [8], h: [0,1,2,3, 8,9,10,11], c: [0, 14] },
-            { name: "7. Snail Style", desc: "Sluggish but heavy.", k: [0, 4], s: [8], h: [0, 2, 4, 6], c: [0, 3, 6, 9] },
-            { name: "8. 2-Step Bass", desc: "UKG vibes in future bass.", k: [0, 10], s: [4, 12], h: [0,2,4,6,8,10,12,14], c: [0, 10] },
-            { name: "9. Bounce", desc: "Jerky rhythm.", k: [0, 3, 11, 14], s: [8], h: [2, 6, 10, 14], c: [4, 12] },
-            { name: "10. Uplifting", desc: "Building energy.", k: [0, 2, 4, 6, 8, 10, 12, 14], s: [8], h: [0, 8], c: [0, 4, 8, 12] },
-            { name: "11. Broken Chords", desc: "Off-beat synth stabs.", k: [0, 10], s: [8], h: [0, 4, 8, 12], c: [2, 5, 11, 14] },
-            { name: "12. Jersey Club", desc: "Triplet feel kick.", k: [0, 3, 7, 10, 12], s: [8], h: [], c: [0] },
-            { name: "13. Wave", desc: "Atmospheric and spacey.", k: [0, 10], s: [8], h: [0, 2, 4, 6, 8, 10, 12, 14], c: [0, 14] },
-            { name: "14. Glitchy", desc: "Random feeling.", k: [0, 5, 9], s: [8, 15], h: [2, 12], c: [0, 3, 7, 13] },
-            { name: "15. Hard Future", desc: "Aggressive saws.", k: [0, 3, 6, 9], s: [8], h: [0, 4, 8, 12], c: [0, 2, 4, 6, 8, 10, 12, 14] },
-            { name: "16. Chill", desc: "Laid back.", k: [0], s: [8], h: [4, 12], c: [0, 8] },
-            { name: "17. Flutter", desc: "Rapid chord trigger.", k: [0, 8], s: [8], h: [], c: [0, 2, 4, 6, 8, 10, 12, 14] },
-            { name: "18. Epic Intro", desc: "Big hits.", k: [0, 8], s: [], h: [], c: [0, 4, 8, 12] },
-            { name: "19. Funky", desc: "Groovy placement.", k: [0, 2, 7, 10], s: [4, 12], h: [0,2,4,6,8,10,12,14], c: [11, 14] },
-            { name: "20. Double Time", desc: "Fast pace feeling.", k: [0, 4, 8, 12], s: [2, 6, 10, 14], h: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], c: [0, 8] }
+            { name: "1. Kawaii Future (Basic)", desc: "Happy chords on the beat. Kick 1, Snare 3.", k: [0, 10, 16, 26, 32, 42, 48, 58], s: [8, 24, 40, 56], h: Array.from({length:32}, (_,i)=>i*2), c: [0, 16, 32, 48] },
+            { name: "2. The Wub Drop", desc: "Syncopated chord stabs with filter movement.", k: [0, 5, 11, 16, 21, 27, 32, 37, 43, 48, 53, 59], s: [8, 24, 40, 56], h: [0,4,8,12,16,20,24,28,32,36,40,44,48,52,56,60], c: [0, 3, 6, 11, 16, 19, 22, 27] },
+            { name: "3. Anime Opening", desc: "Driving energetic beat.", k: [0, 2, 4, 10, 12, 16, 18, 20, 26, 28], s: [8, 24, 40, 56], h: Array.from({length:64}, (_,i)=>i), c: [0, 8, 16, 24, 32, 40, 48, 56] },
+            { name: "4. Future Pop", desc: "Minimal and catchy.", k: [0, 11, 16, 27, 32, 43, 48, 59], s: [8, 24, 40, 56], h: [0, 2, 4, 8, 10, 12, 16, 18, 20, 24, 26, 28], c: [0, 12, 16, 28, 32, 44, 48, 60] },
+            { name: "5. Emotional Saw", desc: "Sustained feeling chords.", k: [0, 4, 10, 16, 20, 26, 32, 36, 42, 48, 52, 58], s: [8, 24, 40, 56], h: [], c: [0, 4, 8, 12, 16, 20, 24, 28] },
+            { name: "6. Trap Influence", desc: "Heavy kick, fast hats.", k: [0, 3, 6, 16, 19, 22, 32, 35, 38, 48, 51, 54], s: [8, 24, 40, 56], h: [0,1,2,3, 8,9,10,11, 16,17,18,19, 24,25,26,27], c: [0, 14, 16, 30, 32, 46, 48, 62] },
+            { name: "7. Snail Style", desc: "Sluggish but heavy.", k: [0, 4, 16, 20, 32, 36, 48, 52], s: [8, 24, 40, 56], h: [0, 2, 4, 6, 16, 18, 20, 22], c: [0, 3, 6, 9, 16, 19, 22, 25] },
+            { name: "8. 2-Step Bass", desc: "UKG vibes in future bass.", k: [0, 10, 16, 26, 32, 42, 48, 58], s: [4, 12, 20, 28, 36, 44, 52, 60], h: Array.from({length:32}, (_,i)=>i*2), c: [0, 10, 16, 26] },
+            { name: "9. Bounce", desc: "Jerky rhythm.", k: [0, 3, 11, 14, 16, 19, 27, 30, 32, 35, 43, 46, 48, 51, 59, 62], s: [8, 24, 40, 56], h: [2, 6, 10, 14, 18, 22, 26, 30], c: [4, 12, 20, 28] },
+            { name: "10. Uplifting", desc: "Building energy.", k: [0, 2, 4, 6, 8, 10, 12, 14], s: [8, 24, 40, 56], h: [0, 8, 16, 24], c: [0, 4, 8, 12, 16, 20, 24, 28] },
+            { name: "11. Broken Chords", desc: "Off-beat synth stabs.", k: [0, 10, 16, 26, 32, 42, 48, 58], s: [8, 24, 40, 56], h: [0, 4, 8, 12, 16, 20, 24, 28], c: [2, 5, 11, 14, 18, 21, 27, 30] },
+            { name: "12. Jersey Club", desc: "Triplet feel kick.", k: [0, 3, 7, 10, 12, 16, 19, 23, 26, 28, 32, 35, 39, 42, 44, 48, 51, 55, 58, 60], s: [8, 24, 40, 56], h: [], c: [0, 16, 32, 48] },
+            { name: "13. Wave", desc: "Atmospheric and spacey.", k: [0, 10, 16, 26, 32, 42, 48, 58], s: [8, 24, 40, 56], h: [0, 2, 4, 6, 8, 10, 12, 14], c: [0, 14, 16, 30, 32, 46, 48, 62] },
+            { name: "14. Glitchy", desc: "Random feeling.", k: [0, 5, 9, 16, 21, 25, 32, 37, 41, 48, 53, 57], s: [8, 15, 24, 31, 40, 47, 56, 63], h: [2, 12, 18, 28], c: [0, 3, 7, 13, 16, 19, 23, 29] },
+            { name: "15. Hard Future", desc: "Aggressive saws.", k: [0, 3, 6, 9, 16, 19, 22, 25], s: [8, 24, 40, 56], h: [0, 4, 8, 12], c: [0, 2, 4, 6, 8, 10, 12, 14] },
+            { name: "16. Chill", desc: "Laid back.", k: [0, 16, 32, 48], s: [8, 24, 40, 56], h: [4, 12, 20, 28], c: [0, 8, 16, 24] },
+            { name: "17. Flutter", desc: "Rapid chord trigger.", k: [0, 8, 16, 24, 32, 40, 48, 56], s: [8, 24, 40, 56], h: [], c: [0, 2, 4, 6, 8, 10, 12, 14] },
+            { name: "18. Epic Intro", desc: "Big hits.", k: [0, 8, 16, 24, 32, 40, 48, 56], s: [], h: [], c: [0, 4, 8, 12, 16, 20, 24, 28] },
+            { name: "19. Funky", desc: "Groovy placement.", k: [0, 2, 7, 10, 16, 18, 23, 26], s: [4, 12, 20, 28], h: Array.from({length:32}, (_,i)=>i*2), c: [11, 14, 27, 30] },
+            { name: "20. Double Time", desc: "Fast pace feeling.", k: [0, 4, 8, 12, 16, 20, 24, 28], s: [2, 6, 10, 14, 18, 22, 26, 30], h: Array.from({length:64}, (_,i)=>i), c: [0, 8, 16, 24] },
+            { name: "21. Melodic Build", desc: "Rising chords.", k: [0, 4, 8, 12, 16, 20, 24, 28, 32, 34, 36, 38, 40, 42, 44, 46], s: [4, 12, 20, 28, 36, 44, 52, 60], h: [], c: [0, 4, 8, 12] },
+            { name: "22. Syncopated 2", desc: "Offbeat variation.", k: [0, 3, 11, 16, 19, 27], s: [8, 24, 40, 56], h: [2, 6, 10, 14], c: [0, 5, 11] },
+            { name: "23. Chord Stabs", desc: "Short bursts.", k: [0, 8, 16, 24], s: [8, 24, 40, 56], h: [0, 2, 4, 6], c: [0, 3, 6, 9] },
+            { name: "24. Happy Hardcore", desc: "Fast 4/4 influence.", k: [0, 4, 8, 12, 16, 20, 24, 28], s: [4, 12, 20, 28], h: [2, 6, 10, 14], c: [0, 8, 16, 24] },
+            { name: "25. Sidechain heavy", desc: "Pumping feel.", k: [0, 4, 8, 12], s: [8, 24, 40, 56], h: [2, 6, 10, 14], c: [2, 6, 10, 14] },
+            { name: "26. Arp Style", desc: "Rhythmic chords.", k: [0, 10, 16, 26], s: [8, 24, 40, 56], h: [0, 2, 4, 6], c: [0, 2, 4, 6, 8, 10, 12, 14] },
+            { name: "27. Drop It", desc: "Pre-drop silence.", k: [0, 16, 32], s: [8, 24], h: [0, 2, 4, 6], c: [0, 2, 4, 6] },
+            { name: "28. Lofi Future", desc: "Relaxed swing.", k: [0, 5, 10, 16, 21, 26], s: [8, 24, 40, 56], h: [2, 6, 10, 14], c: [0, 16] },
+            { name: "29. Complex", desc: "Many layers.", k: [0, 3, 6, 9, 12], s: [8, 24, 40, 56], h: [0, 1, 2, 3], c: [0, 2, 4, 6] },
+            { name: "30. Final Boss", desc: "Dense and energetic.", k: [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22], s: [8, 24, 40, 56], h: Array.from({length:64}, (_,i)=>i), c: [0, 4, 8, 12] }
         ];
 
         // --- UI Generation ---
         function createGrid() {
             const rows = ['chord', 'hihat', 'snare', 'kick'];
             const indRow = document.getElementById('indicators-row');
+            const root = document.querySelector('.grid-fixed-width');
+
+            // Clear existing
+            indRow.innerHTML = '<div></div>'; 
+            rows.forEach(r => document.getElementById(`row-${r}`).innerHTML = `<div class="track-label">${r.toUpperCase()}</div>`);
 
             // Indicators
             for(let i=0; i<STEPS; i++) {
                 const div = document.createElement('div');
                 div.className = 'indicator';
                 div.id = `ind-${i}`;
+                div.dataset.bar = Math.floor(i / 16);
+                if (div.dataset.bar != currentBarView) div.classList.add('hidden-step');
                 indRow.appendChild(div);
             }
 
@@ -619,8 +678,27 @@
                     const btn = document.createElement('div');
                     btn.className = 'step';
                     btn.id = `${row}-${i}`;
+                    btn.dataset.bar = Math.floor(i / 16);
+                    if (Math.floor(i / 16) != currentBarView) btn.classList.add('hidden-step');
+                    
                     btn.addEventListener('click', () => toggleStep(rowIndex, i));
                     container.appendChild(btn);
+                }
+            });
+        }
+
+        function switchBarView(barIdx) {
+            currentBarView = parseInt(barIdx);
+            
+            document.querySelectorAll('.bar-btn').forEach(btn => {
+                btn.classList.toggle('current', parseInt(btn.dataset.bar) === currentBarView);
+            });
+
+            document.querySelectorAll('.step, .indicator').forEach(el => {
+                if (el.dataset.bar == currentBarView) {
+                    el.classList.remove('hidden-step');
+                } else {
+                    el.classList.add('hidden-step');
                 }
             });
         }
@@ -629,6 +707,7 @@
             gridState[row][step] = !gridState[row][step];
             updateGridUI();
             document.getElementById('patternName').innerText = "CUSTOM PATTERN";
+            document.getElementById('descDisplay').innerText = "Manual Edit";
         }
 
         function updateGridUI() {
@@ -636,7 +715,7 @@
             rows.forEach((row, rowIndex) => {
                 for (let i = 0; i < STEPS; i++) {
                     const el = document.getElementById(`${row}-${i}`);
-                    el.classList.toggle('active', gridState[rowIndex][i]);
+                    if(el) el.classList.toggle('active', gridState[rowIndex][i]);
                 }
             });
         }
@@ -651,17 +730,25 @@
 
         function scheduleNote(stepNumber, time) {
             setTimeout(() => {
-                document.querySelectorAll('.indicator').forEach(el => el.classList.remove('active'));
-                document.querySelectorAll('.step').forEach(el => el.classList.remove('playing'));
-                
-                const ind = document.getElementById(`ind-${stepNumber}`);
-                if(ind) ind.classList.add('active');
-
-                const rows = ['chord', 'hihat', 'snare', 'kick'];
-                rows.forEach((row, rIdx) => {
-                    if (gridState[rIdx][stepNumber]) {
-                        document.getElementById(`${row}-${stepNumber}`).classList.add('playing');
+                requestAnimationFrame(() => {
+                    const stepBar = Math.floor(stepNumber / 16);
+                    if (autoFollow && stepBar !== currentBarView) {
+                        switchBarView(stepBar);
                     }
+
+                    document.querySelectorAll('.indicator.active').forEach(el => el.classList.remove('active'));
+                    document.querySelectorAll('.step.playing').forEach(el => el.classList.remove('playing'));
+                    
+                    const ind = document.getElementById(`ind-${stepNumber}`);
+                    if(ind) ind.classList.add('active');
+
+                    const rows = ['chord', 'hihat', 'snare', 'kick'];
+                    rows.forEach((row, rIdx) => {
+                        if (gridState[rIdx][stepNumber]) {
+                            const el = document.getElementById(`${row}-${stepNumber}`);
+                            if(el) el.classList.add('playing');
+                        }
+                    });
                 });
             }, (time - audioCtx.currentTime) * 1000);
 
@@ -676,7 +763,9 @@
                 scheduleNote(currentStep, nextNoteTime);
                 nextNote();
             }
-            timerID = setTimeout(scheduler, lookahead);
+            if(isPlaying) {
+                timerID = setTimeout(scheduler, lookahead);
+            }
         }
 
         function play() {
@@ -684,7 +773,10 @@
             initAudio();
             isPlaying = true;
             currentStep = 0;
-            nextNoteTime = audioCtx.currentTime;
+            nextNoteTime = audioCtx.currentTime + 0.1;
+            
+            if (autoFollow) switchBarView(0);
+
             scheduler();
             document.getElementById('playBtn').classList.add('active');
             document.getElementById('stopBtn').classList.remove('active');
@@ -695,9 +787,10 @@
             clearTimeout(timerID);
             document.getElementById('playBtn').classList.remove('active');
             document.getElementById('stopBtn').classList.add('active');
+            
             setTimeout(() => {
-                 document.querySelectorAll('.indicator').forEach(el => el.classList.remove('active'));
-                 document.querySelectorAll('.step').forEach(el => el.classList.remove('playing'));
+                 document.querySelectorAll('.indicator.active').forEach(el => el.classList.remove('active'));
+                 document.querySelectorAll('.step.playing').forEach(el => el.classList.remove('playing'));
                  document.getElementById('stopBtn').classList.remove('active');
             }, 200);
         }
@@ -711,12 +804,15 @@
         }
 
         function loadPreset(index) {
-            clearGrid();
+            if (index === "") return;
+            gridState = Array(4).fill().map(() => Array(STEPS).fill(false));
             const p = presets[index];
-            p.c.forEach(s => gridState[0][s] = true);
-            p.h.forEach(s => gridState[1][s] = true);
-            p.s.forEach(s => gridState[2][s] = true);
-            p.k.forEach(s => gridState[3][s] = true);
+            
+            if(p.c) p.c.forEach(s => { if(s < STEPS) gridState[0][s] = true; });
+            if(p.h) p.h.forEach(s => { if(s < STEPS) gridState[1][s] = true; });
+            if(p.s) p.s.forEach(s => { if(s < STEPS) gridState[2][s] = true; });
+            if(p.k) p.k.forEach(s => { if(s < STEPS) gridState[3][s] = true; });
+            
             updateGridUI();
             document.getElementById('patternName').innerText = p.name;
             document.getElementById('descDisplay').innerText = p.desc;
@@ -724,6 +820,19 @@
 
         window.addEventListener('load', () => {
             createGrid();
+            
+            // Bar Buttons
+            document.querySelectorAll('.bar-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    switchBarView(e.target.dataset.bar);
+                });
+            });
+
+            // Auto Follow
+            document.getElementById('autoFollowCheck').addEventListener('change', (e) => {
+                autoFollow = e.target.checked;
+            });
+
             const sel = document.getElementById('presetSelect');
             presets.forEach((p, i) => {
                 const opt = document.createElement('option');
